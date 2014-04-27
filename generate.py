@@ -9,6 +9,10 @@ import sys
 
 
 
+#pip install -e git+https://github.com/benthor/inflect.py#egg=inflect
+# the above is for the pluralize library
+
+
 def create_function(arg=sys.argv[1]):
   string = """
 def create(request):
@@ -46,23 +50,78 @@ def create(request):
         return render(request, 'attendee/add.html', context)
 """
 
-#create_function()
-
-
 
 def create_info_view(model=sys.argv[1]):
     """ create info view """
+
     func = """
 def info(request, id):
     ''' Info view for %s model
     '''
-    attendee = %s.objects.get(id=id)
+    %s = %s.objects.get(id=id)
     return render(request, 'attendee/info.html', {'%s': %s})
-""" % (model, model, model.lower(), model.lower())
+""" % (model, model.lower(), model, model.lower(), model.lower())
     return func
+
+
+def create_list_view(model=sys.argv[1]):
+    """ create list view """
+
+    func = """
+def list(request):
+    ''' Get a list of all %s objects.
+    '''
+    %s = %s.objects.all()
+    context = {'%s': %s,
+               }
+    return render(request, 'attendee/attendee_list.html', context)""" % (model, model.lower(), model, model.lower(), model.lower())
+# TODO: pluralize these model string format variables
+
+    return func
+
+
+def create_update_view(model=sys.argv[1]):
+    """ create the update view for a model """
+
+    func = """
+def update(request, id):
+    ''' Updates a %s record
+    '''
+    %s = get_object_or_404(%s, id=id)
+
+    if request.POST:
+        form = %sForm(request.POST, instance=%s)
+        if form.is_valid():
+            form.save()
+            messages.add_message(request, messages.SUCCESS, '%s Information updated')
+            return redirect('%s_list')
+        else:
+            return redirect('%s_info', id)
+    else:
+        form = %sForm(instance=%s)
+        context = {'%s': %s,
+                   'form': form,
+                   }
+
+    return render(request, '%s/update.html', context)""" % (model, model.lower(), model, model, model.lower(), model, model.lower(), model.lower(), model, model.lower(), model.lower(), model.lower(), model.lower())
+
+    return func
+
+
+
+
+
+
+
+
+
+
+
 
 if sys.argv[1][0].isupper():
     print create_info_view()
+    print create_list_view()
+    print create_update_view()
 else:
     print "Model name must be properly capitalized"
 
