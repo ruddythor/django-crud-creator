@@ -13,42 +13,29 @@ import sys
 # the above is for the pluralize library
 
 
-def create_function(arg=sys.argv[1]):
-  string = """
+def create_create_view(model=sys.argv[1]):
+
+    func = """
 def create(request):
-    ''' creates a new attendee for the current year's auction.
+    ''' creates a new %s instance.
     '''
     if request.POST:
-        form = AttendeeForm(request.POST)
+        form = %sForm(request.POST)
         if form.is_valid():
-            attendee = form.save()
-            invoice = Invoice(total_amount=0)
-            invoice.attendee = attendee
-            invoice.save()
-            messages.add_message(request, messages.SUCCESS, 'New Attendee Added. Invoice added and associated with attendee.')
-            return redirect('attendee_list')
+            %s = form.save()
+            return redirect('%s_list')
         else:
-            if len(Attendee.objects.filter(year=lambda: datetime.datetime.now().year)) > 0:
-                latest = Attendee.objects.latest('bid_number')
-                bid_number = latest.bid_number + 1
-            context = {'form': form,
-                       'bid_number': bid_number,
-                       'table_assignment': form.cleaned_data['table_assignment']}
-            return render(request, 'attendee/add.html', context)
+
+            context = {'form': form,}
+            return render(request, '%s/add.html', context)
     else:
-        form = AttendeeForm()
-        # Check to see if there are attendees for this year's auction. If there are, set the default bid number
-        # to one more than the highest bid number. If no attendees, set bid number to 1.
-        if len(Attendee.objects.filter(year=lambda: datetime.datetime.now().year)) > 0:
-            latest = Attendee.objects.latest('bid_number')
-            bid_number = latest.bid_number + 1
-        else:
-            bid_number = 1
+        form = %sForm()
         context = {'form': form,
-                   'bid_number': bid_number,
                    }
-        return render(request, 'attendee/add.html', context)
-"""
+        return render(request, '%s/add.html', context)
+""" % (model.lower(), model, model, model.lower(), model.lower(), model, model.lower())
+
+    return func
 
 
 def create_info_view(model=sys.argv[1]):
@@ -119,11 +106,15 @@ def update(request, id):
 
 
 if sys.argv[1][0].isupper():
-    print create_info_view()
-    print create_list_view()
-    print create_update_view()
+    f = open(str(sys.argv[1].lower())+'.py', 'w+')
+    contents = create_create_view() + '\n' + create_update_view() + '\n' + create_list_view() + '\n' + create_info_view()
+    f.write(contents)
+    f.close()
+
+
 else:
     print "Model name must be properly capitalized"
+
 
 
 
