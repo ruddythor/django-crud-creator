@@ -107,9 +107,8 @@ def update_view(request, id):
     return func
 
 
-
-
-
+model = sys.argv[1]
+app = sys.argv[2]
 
 
 
@@ -120,22 +119,30 @@ path = os.path.abspath(path)
 print 'CWD', path
 
 
-contents = create_create_view() + '\n' + create_update_view() + '\n' + create_list_view() + '\n' + create_info_view()
+view_contents = """from %s.models import %s
+""" % (app.lower(), model)
+
+view_contents += create_create_view() + '\n' + create_update_view() + '\n' + create_list_view() + '\n' + create_info_view()
+model_contents = """from django.db import models
+
+class %s(models.Model):
+
+    class Meta:
+        verbose_name_plural = "%ss"
+        app_label = '%s'
+""" % (model, model.lower(), app)
 
 
 
 if sys.argv[1][0].isupper():
-    f = open(str(sys.argv[1].lower())+'.py', 'w+')
-    f.write(contents)
-    f.close()
-    if os.path.exists(os.path.join(path, sys.argv[2].lower())):
-        model_file = open(os.path.join(path, str(sys.argv[2].lower()), str(sys.argv[1].lower()))+'.py', 'w+')
-        model_file.write(contents)
+    if os.path.exists(os.path.join(path, app.lower())):
+        model_file = open(os.path.join(path, str(app.lower()), str(model.lower()))+'.py', 'w+')
+        model_file.write(view_contents)
         model_file.close()
     else:
-        os.makedirs(os.path.join(path, sys.argv[2].lower()))
-        model_file = open(os.path.join(path, str(sys.argv[2].lower()), str(sys.argv[1].lower()))+'.py', 'w+')
-        model_file.write(contents)
+        os.makedirs(os.path.join(path, app.lower()))
+        model_file = open(os.path.join(path, str(app.lower()), str(model.lower()))+'.py', 'w+')
+        model_file.write(view_contents)
         model_file.close()
 
 else:
