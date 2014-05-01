@@ -1,4 +1,16 @@
 import sys
+import os
+
+"""
+Creates Django CRUD Model Methods and Views for an app.
+usage:
+python generate.py ModelName AppName
+
+creates the given modelname and modelviews under the given app name. Run this at the project level.
+This follows the project/app/models and project/app/views layout for a Django project
++
+
+"""
 
 #def print_args(arg_list):
 #    """ generate CRUD views for a django model """
@@ -16,7 +28,7 @@ import sys
 def create_create_view(model=sys.argv[1]):
 
     func = """
-def create(request):
+def create_view(request):
     ''' creates a new %s instance.
     '''
     if request.POST:
@@ -42,7 +54,7 @@ def create_info_view(model=sys.argv[1]):
     """ create info view """
 
     func = """
-def info(request, id):
+def info_view(request, id):
     ''' Info view for %s model
     '''
     %s = %s.objects.get(id=id)
@@ -55,7 +67,7 @@ def create_list_view(model=sys.argv[1]):
     """ create list view """
 
     func = """
-def list(request):
+def list_view(request):
     ''' Get a list of all %s objects.
     '''
     %s = %s.objects.all()
@@ -71,7 +83,7 @@ def create_update_view(model=sys.argv[1]):
     """ create the update view for a model """
 
     func = """
-def update(request, id):
+def update_view(request, id):
     ''' Updates a %s record
     '''
     %s = get_object_or_404(%s, id=id)
@@ -101,16 +113,30 @@ def update(request, id):
 
 
 
+path = os.path.realpath(__file__)
+path = os.path.dirname(__file__)
+print path, 'hiiii'
+path = os.path.abspath(path)
+print 'CWD', path
 
+
+contents = create_create_view() + '\n' + create_update_view() + '\n' + create_list_view() + '\n' + create_info_view()
 
 
 
 if sys.argv[1][0].isupper():
     f = open(str(sys.argv[1].lower())+'.py', 'w+')
-    contents = create_create_view() + '\n' + create_update_view() + '\n' + create_list_view() + '\n' + create_info_view()
     f.write(contents)
     f.close()
-
+    if os.path.exists(os.path.join(path, sys.argv[2].lower())):
+        model_file = open(os.path.join(path, str(sys.argv[2].lower()), str(sys.argv[1].lower()))+'.py', 'w+')
+        model_file.write(contents)
+        model_file.close()
+    else:
+        os.makedirs(os.path.join(path, sys.argv[2].lower()))
+        model_file = open(os.path.join(path, str(sys.argv[2].lower()), str(sys.argv[1].lower()))+'.py', 'w+')
+        model_file.write(contents)
+        model_file.close()
 
 else:
     print "Model name must be properly capitalized"
